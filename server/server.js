@@ -20,59 +20,73 @@ app.get("/", (req, res) => {
     res.json({ message: "Server Is Up" });
 });
 
+
 //SIGNUP
 //doccument the credentials like said in the doc 
 app.post("/signup", async (req, res) => {
-    const f_name = req.body.f_name;
-    const l_name = req.body.l_name;
-    const username = req.body.username;
-    const password = req.body.password;
+    //added try catch for error handeling
+    try {
+        const f_name = req.body.f_name;
+        const l_name = req.body.l_name;
+        const username = req.body.username;
+        const password = req.body.password;
 
-    //if a credential is missing throw a feild requiered error
-    if (!f_name || !l_name || !username || !password) {
-        return res.json({ message: "All Fields Are Required" });
+        //if a credential is missing throw a feild requiered error
+        if (!f_name || !l_name || !username || !password) {
+            return res.json({ message: "All Fields Are Required" });
+        }
+
+        const existingUser = await users.findOne({ username: username });
+
+        //exisiting user error
+        if (existingUser) {
+            return res.json({ message: "Username Already Exists" });
+        }
+
+        await users.insertOne({
+            f_name: f_name,
+            l_name: l_name,
+            username: username,
+            password: password
+        });
+
+        res.json({ message: "User Created Successfully" });
+
+    } catch (error) {
+        res.json({ message: "Server or database error" });
     }
-
-    const existingUser = await users.findOne({ username: username });
-
-    //exisiting user error
-    if (existingUser) {
-        return res.json({ message: "Username Already Exists" });
-    }
-
-    await users.insertOne({
-        f_name: f_name,
-        l_name: l_name,
-        username: username,
-        password: password
-    });
-
-    res.json({ message: "User Created Successfully" });
 });
 
 
 //LOGIN
 app.post("/login", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    try {
+        const username = req.body.username;
+        const password = req.body.password;
 
-    //same thrown errors as before
-    if (!username || !password) {
-        return res.json({ message: "Username and password are required" });
+        //same thrown errors as before
+        if (!username || !password) {
+            return res.json({ message: "Username and password are required" });
+        }
+
+        const user = await users.findOne({ username: username });
+
+        if (!user) {
+            return res.json({ message: "Invalid username or password" });
+        }
+
+        if (user.password !== password) {
+            return res.json({ message: "Invalid username or password" });
+        }
+
+        //login is sucsesfull if the name and pass match 
+        res.json({ message: "Login successful" });
+
+    } catch (error) {
+        res.json({ message: "Server or database error" });
     }
-
-    const user = await users.findOne({ username: username });
-
-    if (!user) {
-        return res.json({ message: "Invalid username or password" });
-    }
-
-    if (user.password !== password) {
-        return res.json({ message: "Invalid username or password" });
-    }
-    //login is sucsesfull if the name and pass match 
-    res.json({ message: "Login successful" });
 });
+
 
 app.listen(9000, () => {
     console.log("Server running on port 9000");

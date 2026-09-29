@@ -12,23 +12,28 @@ function Signup() {
     async function handleSubmit(event) {
         event.preventDefault();
 
+        //added a try catch for error handeling
+        try {
+            //take the values we have and turn them into user data 
+            const response = await fetch("http://localhost:9000/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    f_name: firstName,
+                    l_name: lastName,
+                    username: username,
+                    password: password
+                })
+            });
 
-        //take the values we have and turn them into user data 
-        const response = await fetch("http://localhost:9000/signup", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                f_name: firstName,
-                l_name: lastName,
-                username: username,
-                password: password
-            })
-        });
+            const data = await response.json();
+            setMessage(data.message);
 
-        const data = await response.json();
-        setMessage(data.message);
+        } catch (error) {
+            setMessage("Server error");
+        }
     }
 
     //basic html with headers for saign up followed by input box for each type we have 
